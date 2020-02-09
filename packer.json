@@ -1,0 +1,63 @@
+{
+  "variables": {
+    "node_version": "12.15.0",
+    "app_dir_root": "/opt/app",
+    "app_version": "1.0.2"
+  },
+  "builders": [
+    {
+      "type": "docker",
+      "image": "arm32v7/node:{{ user `node_version` }}",
+      "commit": "true",
+      "run_command": [
+        "-d",
+        "-i",
+        "-t",
+        "-v", "/usr/include/matrix_hal:/usr/include/matrix_hal",
+        "-v", "/usr/lib/libmatrix_creator_hal.so:/usr/lib/libmatrix_creator_hal.so",
+        "{{.Image}}"
+      ],
+      "changes": [
+        "CMD [\"node\", \"{{ user `app_dir_root` }}/index.js\"]"
+      ]
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "mkdir -p {{ user `app_dir_root` }}"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "apt-get update",
+        "apt-get install -y libfftw3-3",
+        "apt-get clean"
+      ]
+    },
+    {
+      "type": "file",
+      "source": "./app/",
+      "destination": "{{ user `app_dir_root` }}"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "cd {{ user `app_dir_root` }}",
+        "rm -rf node_modules",
+        "rm -rf test",
+        "npm install --production",
+        "ls -l"
+      ]
+    }
+  ],
+  "post-processors": [
+    {
+      "type": "docker-tag",
+      "repository": "cdmnky/matrix-everloop",
+      "tag": "{{ user `app_version` }}-arm32v7"
+    }
+  ]
+}

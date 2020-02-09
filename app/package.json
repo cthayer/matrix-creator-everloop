@@ -1,0 +1,6 @@
+{
+  "version": "1.0.1",
+  "dependencies": {
+    "@matrix-io/matrix-lite": "0.4.6"
+  }
+}
